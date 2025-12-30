@@ -4,8 +4,26 @@ using namespace std;
 bool adminPanelLogin();
 string adminPass = "1234";
 string adminUser = "admin";
-
 const int maxFlights = 8;
+int flightCount = 4;
+struct Flight
+{
+    int flightID;
+    string flightNumber;
+    string destination;
+    string fromLocation;
+    string departureTime;
+    string arrivalTime;
+    int totalSeats;
+    int reservedSeats;
+    int flightFare;
+    string flightNames[maxFlights] = {"Emirates", "Airblue", "Saudi Airline", "PIA"};
+    string status;
+};
+
+Flight flights[maxFlights];
+void addFlight();
+void removeFlight();
 
 int main()
 {
@@ -62,6 +80,25 @@ int main()
                     adminPass = newPass;
                     break;
                 }
+                case 5:
+                {
+                    int addRemChoice;
+                    cout << "Choose an option:\n1.Add Flights\t2.Remove Flights\n";
+                    cin >> addRemChoice;
+                    while (choice != 1 && choice != 2)
+                    {
+                        cout << "Invalid Choice! Enter again (1 or 2): ";
+                        cin >> addRemChoice;
+                    }
+                    if (addRemChoice == 1)
+                    {
+                        addFlight();
+                    }
+                    else if (addRemChoice == 2)
+                    {
+                        removeFlight();
+                    }
+                }
                 }
             }
             break;
@@ -94,4 +131,57 @@ bool adminPanelLogin()
         getline(cin, userPass);
     }
     return true;
+}
+void addFlight()
+{
+    if (flightCount >= maxFlights)
+    {
+        cout << "Flight storage full\n";
+        return;
+    }
+
+    cout << "\n===== ADD FLIGHT =====\n";
+    cout << "Enter Flight ID (e.g 101): ";
+    cin >> flights[flightCount].flightID;
+    cin.ignore();
+
+    cout << "Enter Flight Number (e.g EK-502): ";
+    getline(cin, flights[flightCount].flightNumber);
+
+    cout << "Enter From Location (e.g Karachi): ";
+    getline(cin, flights[flightCount].fromLocation);
+
+    cout << "Enter Destination (e.g Dubai): ";
+    getline(cin, flights[flightCount].destination);
+
+    cout << "Enter Departure Time (e.g 10:30 AM): ";
+    getline(cin, flights[flightCount].departureTime);
+
+    cout << "Enter Arrival Time (e.g 01:45 PM): ";
+    getline(cin, flights[flightCount].arrivalTime);
+
+    cout << "Enter Total Seats (e.g 180): ";
+    cin >> flights[flightCount].totalSeats;
+
+    cout << "Enter Reserved Seats (e.g 50): ";
+    cin >> flights[flightCount].reservedSeats;
+
+    cout << "Enter Flight Fare (e.g 25000): ";
+    cin >> flights[flightCount].flightFare;
+    cin.ignore();
+    if (flights[flightCount].reservedSeats >= flights[flightCount].totalSeats)
+    {
+        flights[flightCount].status = "Full";
+    }
+    else
+    {
+        flights[flightCount].status = "Available";
+    }
+
+    flightCount++;
+    cout << "\nFlight Added Successfully\n";
+}
+void removeFlight()
+{
+    
 }
