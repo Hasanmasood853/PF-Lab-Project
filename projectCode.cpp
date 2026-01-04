@@ -71,15 +71,15 @@ void searchPassengerReport();
 
 int main()
 {
-	system("cls");
 	initializeFlights();
 	savePassengerReport();
 	int menuChoice;
 
 	do
 	{
+		system("cls");
 		cout << "\n*************************************\n";
-		cout << "      Airline Management System        \n";
+		cout << "       Airline Management System        \n";
 		cout << "*************************************\n";
 		cout << "Are you admin or passenger?\n1.Admin Panel    2.Passenger Panel   3.Exit\n";
 		cout << "Enter your choice (1 2 or 3): ";
@@ -101,6 +101,7 @@ int main()
 				bool adminActive = true;
 				while (adminActive)
 				{
+					system("cls");
 					int adminChoice;
 					cout << "\n===== Admin Panel =====\n";
 					cout << "1.Change Password\n2.Current Flights & Passengers\n3.Add/Remove Passenger\n4.Update Passenger or Flight Data\n5.Add/Remove Flights\n6.Check reports\n7.Exit\nEnter your choice: ";
@@ -125,13 +126,9 @@ int main()
 						while ((newPass != confirmPass) || newPass == adminPass)
 						{
 							if (newPass == adminPass)
-							{
 								cout << "Error: New password cannot be the same as the old password!\n";
-							}
 							else
-							{
 								cout << "Passwords do not match! Try again:\n";
-							}
 							cout << "New Password: ";
 							getline(cin, newPass);
 							cout << "Confirm Password: ";
@@ -176,8 +173,8 @@ int main()
 							updatePassenger();
 						else
 							updateFlight();
-					};
-						  break;
+						break;
+					}
 					case 5:
 					{
 						int addRemFlight;
@@ -236,7 +233,6 @@ int main()
 								else {
 									cout << "Unable to access file\n";
 								}
-
 							}
 						}
 						break;
@@ -246,6 +242,11 @@ int main()
 						cout << "Logged out successfully.\n";
 						break;
 					}
+
+					if (adminActive) {
+						cout << "\n";
+						system("pause");
+					}
 				}
 			}
 			break;
@@ -254,6 +255,7 @@ int main()
 		{
 			int logInIdx = -1;
 			do {
+				system("cls");
 				int logSignChoice;
 				cout << "\nDo you want to login or sign up\n";
 				cout << "1. Login\n2. Sign Up (New User)\n";
@@ -272,13 +274,22 @@ int main()
 				{
 					passengerSignUp();
 					cout << "\nPlease Login with your new credentials.\n";
+					system("pause");
 				}
+
+				if (logInIdx == -1 && logSignChoice == 1) {
+					system("pause");
+				}
+
 			} while (logInIdx == -1);
 
 			cout << "\nLogin Successful! Welcome " << passenger[logInIdx].fullName << endl;
+			system("pause");
+
 			bool passengerActive = true;
 			while (passengerActive)
 			{
+				system("cls");
 				int passengerChoice;
 				cout << "\n===== Welcome to Passenger Panel =====\n";
 				cout << "1.Book Flight\n2.Cancel Reservations\n3.View Available flights\n4.Generate Booking Reports\n5.Logout\n";
@@ -321,6 +332,11 @@ int main()
 					cout << "Logged out successfully.\n";
 					break;
 				}
+
+				if (passengerActive) {
+					cout << "\n";
+					system("pause");
+				}
 			}
 			break;
 		}
@@ -333,7 +349,6 @@ int main()
 	delete[] passenger;
 	return 0;
 }
-
 void initializeFlights()
 {
 	flights[0] = { 101, "EK-502", "DXB", "KHI", "02-10-2023", "10:30 AM", "01:45 PM", 180, 2, 25000, "Emirates", "Available", new string[180]{"Ali Khan", "Sara Ahmed"} };
@@ -584,6 +599,7 @@ void bookFlight(int passengerIndex)
 	cout << "\nGive details to select flight for booking\n";
 	cout << "Enter flight id to select: ";
 	cin >> givenFlightID;
+
 	while (foundIdx == -1)
 	{
 		for (int i = 0; i < flightCount; i++)
@@ -600,26 +616,6 @@ void bookFlight(int passengerIndex)
 			cin >> givenFlightID;
 		}
 	}
-	cout << "Flight Found for this ID: " << givenFlightID << endl;
-	cout << "\n-----------------------------------------------------------------------------------\n";
-	cout << "ID      Date        Number     From       To       Fare     Status       Flight Name\n";
-	cout << "-------------------------------------------------------------------------------------\n";
-	cout << flights[foundIdx].flightID << "    "
-		<< flights[foundIdx].flightDate << "     "
-		<< flights[foundIdx].flightNumber << "     "
-		<< flights[foundIdx].fromLocation << "     "
-		<< flights[foundIdx].destination << "        "
-		<< flights[foundIdx].flightFare << "     "
-		<< flights[foundIdx].status;
-	if (flights[foundIdx].status == "Full")
-	{
-		cout << "           ";
-	}
-	else
-	{
-		cout << "      ";
-	}
-	cout << flights[foundIdx].flightName << endl;
 
 	if (flights[foundIdx].status == "Available" && flights[foundIdx].reservedSeats < flights[foundIdx].totalSeats)
 	{
@@ -630,30 +626,29 @@ void bookFlight(int passengerIndex)
 		while (seatsNum < 1 || seatsNum > 5 || remainingSeats < seatsNum)
 		{
 			if (remainingSeats < seatsNum)
-			{
 				cout << "Seats are not available! Only " << remainingSeats << " seats left\nEnter no of seats again: ";
-			}
 			else
-			{
 				cout << "Invalid no of seats! You can book Min=1 and Max=5 seat Enter again: ";
-			}
 			cin >> seatsNum;
 		}
+
 		passenger[passengerIndex].flightID = givenFlightID;
 		passenger[passengerIndex].seats = seatsNum;
 		passenger[passengerIndex].bookingStatus = "Booked";
+
 		if (passenger[passengerIndex].seats > 0) {
 			passenger[passengerIndex].bookedPassengerNames = new string[seatsNum];
 		}
 
 		passenger[passengerIndex].totalFare = 0;
 		cin.ignore();
+
 		for (int k = 0; k < seatsNum; k++)
 		{
 			string name;
-			cin.ignore();
-			cout << "Enter name for Pasenger " << k + 1 << " : ";
+			cout << "Enter name for Passenger " << k + 1 << " : ";
 			getline(cin, name);
+
 			passenger[passengerIndex].bookedPassengerNames[k] = name;
 			flights[foundIdx].passengerNames[flights[foundIdx].reservedSeats + k] = name;
 
@@ -676,6 +671,7 @@ void bookFlight(int passengerIndex)
 					cout << "Invalid col Num! Enter (1-5) [1=A,2=B,3=C,4=D,5=E]: ";
 					cin >> col;
 				}
+
 				if (flights[foundIdx].seatMap[row - 1][col - 1] == 0)
 				{
 					if (col == 1 || col == 2) {
@@ -689,6 +685,8 @@ void bookFlight(int passengerIndex)
 					cout << "Seat is available! Booking now...\n";
 					flights[foundIdx].seatMap[row - 1][col - 1] = 1;
 					seatBooked = true;
+
+					cin.ignore();
 				}
 				else
 				{
@@ -698,6 +696,7 @@ void bookFlight(int passengerIndex)
 		}
 
 		flights[foundIdx].reservedSeats += seatsNum;
+
 		bookingCount += seatsNum;
 
 		if (flights[foundIdx].reservedSeats >= flights[foundIdx].totalSeats)
@@ -870,17 +869,25 @@ void updatePassenger() {
 		cout << "Invalid choice! Enter again: ";
 		cin >> updateBooking;
 	}
+
 	if (updateBooking == 'y' || updateBooking == 'Y') {
+
 		if (passenger[userFoundIdx].bookingStatus == "Booked") {
 			cout << "Cancelling old reservation to allow update...\n";
 			cancelReservation(userFoundIdx);
 		}
-		cout << "Launching Booking Panel for new details...\n";
-		viewFlights();
-		cout << endl;
-		bookFlight(userFoundIdx);
+
+		if (passenger[userFoundIdx].bookingStatus != "Booked") {
+			cout << "Launching Booking Panel for new details...\n";
+			viewFlights();
+			cout << endl;
+			bookFlight(userFoundIdx);
+		}
+		else {
+			cout << "Flight update aborted (Reservation was not cancelled).\n";
+		}
 	}
-	cout << "Passenger Data Updated Successfully\n";
+	cout << "Passenger Data Update Process Finished.\n";
 }
 
 void updateFlight() {
