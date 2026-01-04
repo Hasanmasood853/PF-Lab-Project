@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
+#include <fstream>
 using namespace std;
 
 // Structures
@@ -51,17 +52,25 @@ string adminUser = "admin";
 void initializeFlights();
 bool adminloginPanel();
 int passengerLogin();
-void passengerSignUp();
+void passengerSignUp();//also used by admin to add new passenger
 void addFlight();
 void removeFlight();
 void viewFlights();
 void bookFlight(int passengerIndex);
 void cancelReservation(int passengerIdx);
+void removePassenger();
+void viewPassengers();
+void updatePassenger();
+void updateFlight();
+void savePassengerReport();
+void searchPassengerReport();
+void genPassengerReport(int userIdx);
+
 int main()
 {
 	system("cls");
 	initializeFlights();
-	int choice;
+	int menuChoice;
 
 	do
 	{
@@ -70,15 +79,15 @@ int main()
 		cout << "*************************************\n";
 		cout << "Are you admin or passenger?\n1.Admin Panel    2.Passenger Panel   3.Exit\n";
 		cout << "Enter your choice (1 2 or 3): ";
-		cin >> choice;
+		cin >> menuChoice;
 
-		while (choice < 1 || choice > 3)
+		while (menuChoice < 1 || menuChoice > 3)
 		{
 			cout << "Invalid choice! Enter again: ";
-			cin >> choice;
+			cin >> menuChoice;
 		}
 
-		switch (choice)
+		switch (menuChoice)
 		{
 		case 1:
 		{
@@ -90,7 +99,7 @@ int main()
 				{
 					int adminChoice;
 					cout << "\n===== Admin Panel =====\n";
-					cout << "1.Change Password\n2.Current Registered Flights & Passengers\n3.Add/Remove Passenger\n4.Update Passenger Data\n5.Add/Remove Flights\n6.Check reports\n7.Exit\nEnter your choice: ";
+					cout << "1.Change Password\n2.Current Flights & Passengers\n3.Add/Remove Passenger\n4.Update Passenger or Flight Data\n5.Add/Remove Flights\n6.Check reports\n7.Exit\nEnter your choice: ";
 					cin >> adminChoice;
 
 					while (adminChoice < 1 || adminChoice > 7)
@@ -130,29 +139,84 @@ int main()
 					}
 					case 2:
 						viewFlights();
+						cout << endl;
+						viewPassengers();
 						break;
 					case 3:
-						break;
-					case 4:
-						break;
-					case 5:
 					{
-						int addRemChoice;
-						cout << "Choose an option:\n1.Add Flights\t2.Remove Flights\n";
-						cin >> addRemChoice;
-						while (addRemChoice != 1 && addRemChoice != 2)
+						viewPassengers();
+						int addRemPassenger;
+						cout << "Choose an option:\n1.Add Passenger\t2.Remove Passenger\nEnter option: ";
+						cin >> addRemPassenger;
+						while (addRemPassenger != 1 && addRemPassenger != 2)
 						{
 							cout << "Invalid Choice! Enter again (1 or 2): ";
-							cin >> addRemChoice;
+							cin >> addRemPassenger;
 						}
-						if (addRemChoice == 1)
+						if (addRemPassenger == 1)
+							passengerSignUp();
+						else
+							removePassenger();
+						break;
+					}
+					case 4: {
+						int updateChoice;
+						cout << "Choose an option:\n1.Update Passenger\t2.Update Flight\nEnter option: ";
+						cin >> updateChoice;
+						while (updateChoice != 1 && updateChoice != 2)
+						{
+							cout << "Invalid Choice! Enter again (1 or 2): ";
+							cin >> updateChoice;
+						}
+						if (updateChoice == 1)
+							updatePassenger();
+						else
+							updateFlight();
+					};
+						  break;
+					case 5:
+					{
+						int addRemFlight;
+						cout << "Choose an option:\n1.Add Flights\t2.Remove Flights\n";
+						cin >> addRemFlight;
+						while (addRemFlight != 1 && addRemFlight != 2)
+						{
+							cout << "Invalid Choice! Enter again (1 or 2): ";
+							cin >> addRemFlight;
+						}
+						if (addRemFlight == 1)
 							addFlight();
 						else
 							removeFlight();
 						break;
 					}
 					case 6:
+					{
+						int reportChoice;
+						cout << "Choose an option:\n1.Passenger Report\t2.Flights Report\nEnter Choice: ";
+						cin >> reportChoice;
+						while (reportChoice != 1 && reportChoice != 2)
+						{
+							cout << "Invalid Choice! Enter again (1 or 2): ";
+							cin >> reportChoice;
+						}
+						if (reportChoice == 1) {
+							savePassengerReport();
+							char readChoice;
+							cout << "Do you want to read any passenger report (y/n): ";
+							cin >> readChoice;
+							while (readChoice != 'Y' && readChoice != 'y' && readChoice != 'N' && readChoice != 'n') {
+								cout << "Invalid choice! Enter again (y/n): ";
+								cin >> readChoice;
+							}
+							if (readChoice == 'y' || readChoice == 'Y') {
+								searchPassengerReport();
+							}
+						}
+						else
+							flightsReport();
 						break;
+					}
 					case 7:
 						adminActive = false;
 						cout << "Logged out successfully.\n";
@@ -226,7 +290,7 @@ int main()
 					viewFlights();
 					break;
 				case 4:
-					cout << "Report feature coming soon.\n";
+					genPassengerReport(logInIdx);
 					break;
 				case 5:
 					passengerActive = false;
@@ -240,7 +304,7 @@ int main()
 			cout << "Exiting System. Thank you!\n";
 			break;
 		}
-	} while (choice != 3);
+	} while (menuChoice != 3);
 
 	delete[] passenger;
 	return 0;
@@ -262,7 +326,7 @@ void initializeFlights()
 	passengerCount = 3;
 
 	for (int i = 0; i < flightCount; i++) {
-		for (int r = 0; r < 50; r++) 
+		for (int r = 0; r < 50; r++)
 			for (int c = 0; c < 6; c++)
 				flights[i].seatMap[r][c] = 0;
 	}
@@ -295,7 +359,7 @@ bool adminloginPanel()
 int passengerLogin()
 {
 	string logUserId, logUserPass;
-	cout << "\nEnter your id: ";
+	cout << "\nEnter your username: ";
 	cin.ignore();
 	cin >> logUserId;
 	cout << "Enter your password: ";
@@ -310,7 +374,7 @@ int passengerLogin()
 	return -1;
 }
 
-void passengerSignUp()
+void passengerSignUp() //also used by admin to add new passenger
 {
 	if (passengerCount >= passengerCapacity) {
 		int newCapacity = passengerCapacity * 2;
@@ -324,6 +388,7 @@ void passengerSignUp()
 	}
 	string signUserId, signUserPass, signName;
 	bool existId = true;
+	cout << "\nAdding new Passenger into system\n";
 	cin.ignore();
 	while (existId) {
 		existId = false;
@@ -436,9 +501,9 @@ void viewFlights()
 		return;
 	}
 
-	cout << "\n----------------------------------------------------------------------------------\n";
-	cout << "ID      Date        Number     From       To       Fare     Status       Flight Name\n";
-	cout << "------------------------------------------------------------------------------------\n";
+	cout << "\n-------------------------------------------------------------------------------------\n";
+	cout << "ID       Date         Number     From      To        Fare     Status       Flight Name\n";
+	cout << "---------------------------------------------------------------------------------------\n";
 	for (int i = 0; i < flightCount; i++)
 	{
 		cout << flights[i].flightID << "    "
@@ -458,7 +523,7 @@ void viewFlights()
 		}
 		cout << flights[i].flightName << endl;
 	}
-	cout << "--------------------------------------------------------------------------------\n";
+	cout << "----------------------------------------------------------------------------------------\n";
 }
 
 void bookFlight(int passengerIndex)
@@ -600,7 +665,7 @@ void cancelReservation(int passengerIdx) {
 	}
 	int bookedFID = passenger[passengerIdx].flightID,
 		bookedSeats = passenger[passengerIdx].seats;
-	cout <<endl<< passenger[passengerIdx].fullName << " your booking details are:\n1. Booked Flight id: " << bookedFID <<
+	cout << endl << passenger[passengerIdx].fullName << " your booking details are:\n1. Booked Flight id: " << bookedFID <<
 		"\n2. Seats booked: " << bookedSeats << "\n3. Total Fare: " << passenger[passengerIdx].totalFare << endl;
 	cout << "Booked Passenger Names:\n";
 	for (int i = 0; i < passenger[passengerIdx].seats; i++) {
@@ -639,5 +704,309 @@ void cancelReservation(int passengerIdx) {
 	}
 	else {
 		cout << "Reservation is not cancelled! Thanks\n";
+	}
+}
+
+void viewPassengers() {
+	cout << "\nAll passengers details:\n";
+	cout << "Total Passengers: " << passengerCount << endl;
+	for (int i = 0; i < passengerCount; i++) {
+		cout << "\nPassenger " << i + 1 << " details:\n full name: " << passenger[i].fullName << endl
+			<< " User Name: " << passenger[i].userID << endl << " Password: " << passenger[i].userPass << endl
+			<< " Booking status: " << passenger[i].bookingStatus << endl;
+		if (passenger[i].bookingStatus == "No Booking") {
+			cout << " Due to no booking No flight ID and other data shown\n";
+		}
+		else {
+			cout << " Booked Flight Id: " << passenger[i].flightID << endl;
+			cout << " Seats Booked: " << passenger[i].seats << endl;
+			cout << " full name: " << passenger[i].totalFare << endl;
+		}
+		cout << endl;
+	}
+}
+
+void removePassenger() {
+	string removeUser;
+	cin.ignore();
+	cout << "\n===== REMOVE PASSENGER =====\n";
+	cout << "Enter passenger username to remove: ";
+	getline(cin, removeUser);
+	int foundUserIdx = -1;
+	for (int i = 0; i < passengerCount; i++) {
+		if (passenger[i].userID == removeUser) {
+			foundUserIdx = i;
+			break;
+		}
+	}
+	if (foundUserIdx != -1) {
+		if (passenger[foundUserIdx].bookedPassengerNames != nullptr) {
+			delete[] passenger[foundUserIdx].bookedPassengerNames;
+		}
+		for (int j = foundUserIdx; j < passengerCount - 1; j++) {
+			passenger[j] = passenger[j + 1];
+		}
+		passengerCount--;
+		cout << "Passenger removed successfully.\n";
+	}
+	else {
+		cout << "Passenger not found.\n";
+	}
+}
+
+void updatePassenger() {
+	cout << "\n======= UPDATE PASSENGER DATA =======\n";
+	viewPassengers();
+	int userFoundIdx = -1;
+	string updateUser;
+	cin.ignore();
+
+	do {
+		cout << "Enter username to update details: ";
+		getline(cin, updateUser);
+
+		for (int i = 0; i < passengerCount; i++) {
+			if (passenger[i].userID == updateUser) {
+				userFoundIdx = i;
+				break;
+			}
+		}
+
+		if (userFoundIdx == -1) {
+			cout << "User Not found! Try another.\n";
+		}
+
+	} while (userFoundIdx == -1);
+
+	cout << "Updating " << passenger[userFoundIdx].fullName << " Data:\n";
+
+	string newUserID;
+	bool userValid = false;
+	while (!userValid) {
+		userValid = true;
+		cout << "Enter new user ID: ";
+		getline(cin, newUserID);
+
+		if (newUserID == passenger[userFoundIdx].userID) {
+			cout << "New and old ID cannot be same! Enter again.\n";
+			userValid = false;
+		}
+		else {
+			for (int i = 0; i < passengerCount; i++) {
+				if (i != userFoundIdx && passenger[i].userID == newUserID) {
+					cout << "Username " << newUserID << " is already taken! Try another.\n";
+					userValid = false;
+					break;
+				}
+			}
+		}
+	}
+	passenger[userFoundIdx].userID = newUserID;
+
+	cout << "Enter new user password: ";
+	getline(cin, passenger[userFoundIdx].userPass);
+
+	cout << "Enter new full name: ";
+	getline(cin, passenger[userFoundIdx].fullName);
+
+	char updateBooking;
+	cout << "Do you want to update Flight/Seat details? (y/n): ";
+	cin >> updateBooking;
+	while (updateBooking != 'y' && updateBooking != 'Y' && updateBooking != 'n' && updateBooking != 'N') {
+		cout << "Invalid choice! Enter again: ";
+		cin >> updateBooking;
+	}
+	if (updateBooking == 'y' || updateBooking == 'Y') {
+		if (passenger[userFoundIdx].bookingStatus == "Booked") {
+			cout << "Cancelling old reservation to allow update...\n";
+			cancelReservation(userFoundIdx);
+		}
+		cout << "Launching Booking Panel for new details...\n";
+		viewFlights();
+		cout << endl;
+		bookFlight(userFoundIdx);
+	}
+	cout << "Passenger Data Updated Successfully\n";
+}
+
+void updateFlight() {
+	viewFlights();
+	cout << "\n======= UPDATE FLIGHT DATA =======\n";
+	int updateFlightID, flightFoundIdx = -1;
+	do {
+		cout << "Enter flight id to update data: ";
+		cin >> updateFlightID;
+		for (int i = 0; i < flightCount; i++) {
+			if (flights[i].flightID == updateFlightID) {
+				flightFoundIdx = i;
+				break;
+			}
+		}
+		if (flightFoundIdx == -1) {
+			cout << "No flight found for this id! Try another:\n ";
+		}
+	} while (flightFoundIdx == -1);
+	int newID; bool isValidID = false;
+	cout << "Updating flight " << flights[flightFoundIdx].flightNumber << " Data\n";
+	cout << "Enter new Data to Update:\n";
+	while (!isValidID) {
+		isValidID = true;
+		cout << "Flight ID: ";
+		cin >> newID;
+		if (newID == flights[flightFoundIdx].flightID) {
+			cout << "New and old ID cannot be same! Enter again: ";
+			isValidID = false;
+		}
+		else {
+			for (int i = 0; i < flightCount; i++) {
+				if (i != flightFoundIdx && flights[i].flightID == newID) {
+					cout << "ID " << newID << " is already used by another flight!\n";
+					isValidID = false;
+					break;
+				}
+			}
+		}
+	}
+	flights[flightFoundIdx].flightID = newID;
+	cin.ignore();
+	cout << "Flight Name (e.g Airblue): ";
+	getline(cin, flights[flightFoundIdx].flightName);
+
+	cout << "Flight Number (e.g EK-502): ";
+	getline(cin, flights[flightFoundIdx].flightNumber);
+
+	cout << "Flight Date (DD-MM-YYYY): ";
+	getline(cin, flights[flightFoundIdx].flightDate);
+
+	cout << "From Location Code (e.g KHI): ";
+	getline(cin, flights[flightFoundIdx].fromLocation);
+
+	cout << "Destination Code (e.g DXB): ";
+	getline(cin, flights[flightFoundIdx].destination);
+
+	cout << "Departure Time (e.g 10:30 AM): ";
+	getline(cin, flights[flightFoundIdx].departureTime);
+
+	cout << "Arrival Time(e.g 01:45 PM) : ";
+	getline(cin, flights[flightFoundIdx].arrivalTime);
+
+	cout << "Total Seats (e.g 180): ";
+	cin >> flights[flightFoundIdx].totalSeats;
+
+	cout << "Flight Fare (e.g 50000): ";
+	cin >> flights[flightFoundIdx].flightFare;
+
+	cout << "Seats Reserved: ";
+	cin >> flights[flightFoundIdx].reservedSeats;
+	cin.ignore();
+	if (flights[flightFoundIdx].reservedSeats >= flights[flightFoundIdx].totalSeats) {
+		flights[flightFoundIdx].status = "Full";
+	}
+	else {
+		flights[flightFoundIdx].status = "Available";
+	}
+	cout << "Flight Data Updated Successfully\n";
+}
+
+void savePassengerReport() {
+	ofstream passengerReport("PassengerReport.txt", ios::out | ios::trunc);
+	if (passengerReport.is_open()) {
+		for (int i = 0; i < passengerCount; i++) {
+			passengerReport << passenger[i].userID << " details:\n   Full Name: " << passenger[i].fullName
+				<< "\n   Password: " << passenger[i].userPass
+				<< "\n   Total Fare: " << passenger[i].totalFare
+				<< "\n   Booking Status: " << passenger[i].bookingStatus
+				<< "\n   Seats Booked: " << passenger[i].seats
+				<< "\n   Booked Flight ID: " << passenger[i].flightID << endl;
+			if (passenger[i].seats > 0 && passenger[i].bookedPassengerNames != nullptr) {
+				passengerReport << "Passengers booked by this user:\n";
+				for (int j = 0; j < passenger[i].seats; j++) {
+					passengerReport << "   " << j + 1 << ". " << passenger[i].bookedPassengerNames[j] << endl;
+				}
+			}
+			if (passenger[i].flightID == 0) {
+				cout << "No Booking found for this passenger.\n";
+				cout << "Total Fare is: 0\n";
+			}
+			int dateIdx = -1;
+			for (int i = 0; i < flightCount; i++) {
+				if (flights[i].flightID == passenger[i].flightID) {
+					dateIdx = i;
+					break;
+				}
+			}
+			if (dateIdx != -1) {
+				passengerReport << "   Transaction Date: " << flights[dateIdx].flightDate << "\n";
+			}
+			else {
+				passengerReport << "   Transaction Date: N/A (No Booking)\n";
+			}
+
+			passengerReport << "   Total Fare: " << passenger[i].totalFare << "\n";
+			passengerReport << "--------------------------------------\n";
+		}
+	}
+	else {
+		cout << "File cannot be accessed\n";
+	}
+	passengerReport.close();
+	cout << "Passenger Report saved successfully\n";
+}
+
+void searchPassengerReport() {
+	string userNameReport;
+	cin.ignore();
+	cout << "Enter username to read report: ";
+	getline(cin, userNameReport);
+	ifstream readPassenger("PassengerReport.txt");
+	if (readPassenger.is_open()) {
+		string line, current = "";
+		bool userFound = false;
+		while (getline(readPassenger, line)) {
+			current += line + "\n";
+			if (line.find("--------------------------------------") != string::npos) {
+				if (current.find(userNameReport + " details:") != string::npos) {
+					cout << "Data found in file\n";
+					cout << current;
+					userFound = true;
+					break;
+				}
+				current = "";
+			}
+		}
+		if (!userFound) {
+			cout << userNameReport << " not found in the report file.\n";
+		}
+		readPassenger.close();
+	}
+	else {
+		cout << "File cannot be accessed\n";
+	}
+}
+
+void genPassengerReport(int userIdx) {
+	ofstream genPassReport("PassengerGeneratedReport.txt", ios::out | ios::trunc);
+	ifstream readPassenger("PassengerReport.txt");
+	if (genPassReport.is_open() && readPassenger.is_open()) {
+		string line, current = "";
+		while (getline(readPassenger, line)) {
+			current += line + "\n";
+			if (line.find("--------------------------------------") != string::npos) {
+				if (current.find(passenger[userIdx].userID + " details:") != string::npos) {
+					cout << "Data found in file\n";
+					cout << current;
+					genPassReport << "Data found in file\n";
+					genPassReport << current;
+					break;
+				}
+				current = "";
+			}
+		}
+		cout << "\nPassenger Report saved successfully\n";
+		readPassenger.close();
+		genPassReport.close();
+	}
+	else {
+		cout << "FIles cannot be accessed\n";
 	}
 }
