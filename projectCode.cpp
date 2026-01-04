@@ -50,26 +50,30 @@ string adminUser = "admin";
 
 // Function Prototypes
 void initializeFlights();
+void savePassengerReport();
+//admin functions
 bool adminloginPanel();
-int passengerLogin();
-void passengerSignUp();//also used by admin to add new passenger
 void addFlight();
 void removeFlight();
-void viewFlights();
-void bookFlight(int passengerIndex);
-void cancelReservation(int passengerIdx);
 void removePassenger();
 void viewPassengers();
 void updatePassenger();
 void updateFlight();
-void savePassengerReport();
-void searchPassengerReport();
+void genflightsReport(ostream& out);
 void genPassengerReport(int userIdx);
+//Passenger functions
+int passengerLogin();
+void passengerSignUp();//also used by admin to add new passenger
+void viewFlights();
+void bookFlight(int passengerIndex);
+void cancelReservation(int passengerIdx);
+void searchPassengerReport();
 
 int main()
 {
 	system("cls");
 	initializeFlights();
+	savePassengerReport();
 	int menuChoice;
 
 	do
@@ -213,8 +217,28 @@ int main()
 								searchPassengerReport();
 							}
 						}
-						else
-							flightsReport();
+						else {
+							genflightsReport(cout);
+							char saveflightReport;
+							cout << "Do you want to save flights report in file (y/n): ";
+							cin >> saveflightReport;
+							while (saveflightReport != 'Y' && saveflightReport != 'y' && saveflightReport != 'N' && saveflightReport != 'n') {
+								cout << "Invalid choice! Enter again (y/n): ";
+								cin >> saveflightReport;
+							}
+							if (saveflightReport == 'y' || saveflightReport == 'Y') {
+								ofstream flightsReport("FLightsReports.txt", ios::trunc);
+								if (flightsReport.is_open()) {
+									genflightsReport(flightsReport);
+									cout << "\nReport saved successfully\n";
+									flightsReport.close();
+								}
+								else {
+									cout << "Unable to access file\n";
+								}
+
+							}
+						}
 						break;
 					}
 					case 7:
@@ -322,7 +346,7 @@ void initializeFlights()
 	passenger[0] = { "user1","12341","Hassan", 101, 2, new string[2]{"Ali Khan", "Sara Ahmed"}, "Booked" ,50000 };
 	passenger[1] = { "user2","12342","Husnain",102, 1, new string[1]{"Bilal Tariq"}, "Booked",12000 };
 	passenger[2] = { "user3","12343","Ahmad", 103, 1, new string[1]{"Usman Ghani"}, "Booked" ,45000 };
-	bookingCount = 3;
+	bookingCount = 4;
 	passengerCount = 3;
 
 	for (int i = 0; i < flightCount; i++) {
@@ -427,7 +451,32 @@ void addFlight()
 	cout << "\n===== ADD FLIGHT =====\n";
 	cout << "Enter Flight ID (e.g 101): ";
 	cin >> flights[flightCount].flightID;
+
+	while (true)
+	{
+		bool isDuplicate = false;
+		for (int i = 0; i < flightCount; i++)
+		{
+			if (flights[i].flightID == flights[flightCount].flightID)
+			{
+				isDuplicate = true;
+				break;
+			}
+		}
+
+		if (isDuplicate)
+		{
+			cout << "Flight of this ID already exists. Try another ID: ";
+			cin >> flights[flightCount].flightID;
+		}
+		else
+		{
+			break;
+		}
+	}
+
 	cin.ignore();
+
 	cout << "Enter Flight Name (e.g Airblue): ";
 	getline(cin, flights[flightCount].flightName);
 
@@ -459,8 +508,10 @@ void addFlight()
 	flights[flightCount].reservedSeats = 0;
 	flights[flightCount].status = "Available";
 
-	for (int r = 0; r < 20; r++) {
-		for (int c = 0; c < 5; c++) {
+	for (int r = 0; r < 50; r++)
+	{
+		for (int c = 0; c < 6; c++)
+		{
 			flights[flightCount].seatMap[r][c] = 0;
 		}
 	}
@@ -481,6 +532,7 @@ void removeFlight()
 	{
 		if (delFlightID == flights[i].flightID)
 		{
+			delete[] flights[i].passengerNames;
 			for (int j = i; j < flightCount - 1; j++)
 			{
 				flights[j] = flights[j + 1];
@@ -502,7 +554,7 @@ void viewFlights()
 	}
 
 	cout << "\n-------------------------------------------------------------------------------------\n";
-	cout << "ID       Date         Number     From      To        Fare     Status       Flight Name\n";
+	cout << "ID       Date         Number     From     To         Fare     Status       Flight Name\n";
 	cout << "---------------------------------------------------------------------------------------\n";
 	for (int i = 0; i < flightCount; i++)
 	{
@@ -599,6 +651,7 @@ void bookFlight(int passengerIndex)
 		for (int k = 0; k < seatsNum; k++)
 		{
 			string name;
+			cin.ignore();
 			cout << "Enter name for Pasenger " << k + 1 << " : ";
 			getline(cin, name);
 			passenger[passengerIndex].bookedPassengerNames[k] = name;
@@ -645,6 +698,7 @@ void bookFlight(int passengerIndex)
 		}
 
 		flights[foundIdx].reservedSeats += seatsNum;
+		bookingCount += seatsNum;
 
 		if (flights[foundIdx].reservedSeats >= flights[foundIdx].totalSeats)
 		{
@@ -720,7 +774,7 @@ void viewPassengers() {
 		else {
 			cout << " Booked Flight Id: " << passenger[i].flightID << endl;
 			cout << " Seats Booked: " << passenger[i].seats << endl;
-			cout << " full name: " << passenger[i].totalFare << endl;
+			cout << " Total Fare: " << passenger[i].totalFare << endl;
 		}
 		cout << endl;
 	}
@@ -1008,5 +1062,58 @@ void genPassengerReport(int userIdx) {
 	}
 	else {
 		cout << "FIles cannot be accessed\n";
+	}
+}
+
+void genflightsReport(ostream& out) {
+	out << "\n======= General Reports (Bookings, Passengers, Income) =======\n";
+	out << "Overall seats booked in system: " << bookingCount << endl;
+	out << "------------------------------------------" << endl;
+
+	for (int i = 0; i < flightCount; i++) {
+		double income = 0;
+
+		for (int j = 0; j < passengerCount; j++) {
+			if (passenger[j].flightID == flights[i].flightID) {
+				income += passenger[j].totalFare;
+			}
+		}
+
+		out << "1. Flight ID: " << flights[i].flightID << endl
+			<< "   - Bookings: " << flights[i].reservedSeats << endl
+			<< "   - Income Generated: " << income << endl;
+		out << "------------------------------------------" << endl;
+	}
+
+	out << "\n======= Inventory Status Report =======\n";
+	out << "Flight ID\tSeats Left\tDestination" << endl;
+	out << "------------------------------------------" << endl;
+
+	for (int i = 0; i < flightCount; i++) {
+		int remainingSeats = flights[i].totalSeats - flights[i].reservedSeats;
+		if (remainingSeats < 0) remainingSeats = 0;
+
+		out << flights[i].flightID << "\t\t"
+			<< remainingSeats << "\t\t"
+			<< flights[i].destination << endl;
+	}
+
+	out << "\n======= Utilization Report =======\n";
+	out << "Flight Utilization Details:\n";
+	out << "------------------------------------------\n";
+
+	for (int i = 0; i < flightCount; i++) {
+		float utilization = ((float)flights[i].reservedSeats / flights[i].totalSeats) * 100;
+
+		out << "Flight ID: " << flights[i].flightID << endl;
+
+		if (flights[i].reservedSeats == 0) {
+			out << "Status: Not Utilized (0%)\n";
+		}
+		else {
+			out << "Flight Utilization: " << utilization << "%\n";
+			out << "Remaining Space:    " << 100 - utilization << "%" << endl;
+		}
+		out << "------------------------------------------\n";
 	}
 }
