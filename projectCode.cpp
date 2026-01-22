@@ -104,7 +104,7 @@ int main()
 					system("cls");
 					int adminChoice;
 					cout << "\n===== Admin Panel =====\n";
-					cout << "1.Change Password\n2.Current Flights & Passengers\n3.Add/Remove Passenger\n4.Update Passenger or Flight Data\n5.Add/Remove Flights\n6.Check reports\n7.Exit\nEnter your choice: ";
+					cout << "1.Change Password\n2.Current Flights & Passengers\n3.Add/Remove Passenger\n4.Update Passenger or Flight Data\n5.Add/Remove Flights\n6.Check reports\n7.Logout\nEnter your choice: ";
 					cin >> adminChoice;
 
 					while (adminChoice < 1 || adminChoice > 7)
@@ -238,8 +238,8 @@ int main()
 						break;
 					}
 					case 7:
-						adminActive = false;
 						cout << "Logged out successfully.\n";
+						adminActive = false;
 						break;
 					}
 
@@ -1118,8 +1118,9 @@ void genflightsReport(ostream& out) {
 			out << "Status: Not Utilized (0%)\n";
 		}
 		else {
+			out << fixed << setprecision(1);
 			out << "Flight Utilization: " << utilization << "%\n";
-			out << "Remaining Space:    " << 100 - utilization << "%" << endl;
+			out << "Remaining Space:    " << 100 - utilization << "%\n";
 		}
 		out << "------------------------------------------\n";
 	}
